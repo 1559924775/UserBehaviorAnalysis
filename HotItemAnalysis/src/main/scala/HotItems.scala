@@ -33,7 +33,7 @@ case class UserBehavior(userId: Long, itemId: Long, categoryId: Int, behavior: S
 case class ItemViewCount(ItemId: Long, windowEnd: Long, count: Long)
 
 /**
- * 实时热门商品统计（已浏览量为依据）
+ * 实时热门商品统计（已浏览量为依据）  每隔5分钟输出最近1小时的
  */
 object HotItems {
   def main(args: Array[String]): Unit = {
@@ -56,26 +56,28 @@ object HotItems {
           UserBehavior(arr(0).trim.toLong, arr(1).trim.toLong, arr(2).trim.toInt, arr(3).trim, arr(4).trim.toLong)
         }
       } //将数据源格式化为样例类
+
 //      .assignAscendingTimestamps(_.timeStamp * 1000L) //设置EventTime字段,数据源是严格递增的
-//BoundedOutOfOrdernessTimestampExtractor<T> implements AssignerWithPeriodicWatermarks<T>
+
+      //BoundedOutOfOrdernessTimestampExtractor<T> implements AssignerWithPeriodicWatermarks<T>
       //public BoundedOutOfOrdernessTimestampExtractor(Time maxOutOfOrderness)
-      //延时1秒 默认周期是 200 毫秒
+      //延时1秒 默认周期是 200 毫秒        如果数据是乱序的（有一定延迟）
       .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor[UserBehavior](Time.milliseconds(1000)) {
         override def extractTimestamp(element: UserBehavior): Long = {
-          element.timeStamp * 1000
+          element.timeStamp * 1000  //设置eventTime
         }
       })
-    
 
 
     //2.处理数据
     val processSteam = dataSteam
       .filter(_.behavior == "pv") //只考虑浏览的情况
 
-      //1).先聚合计算出每个商品的点击量
+      //1).先聚合计算出每个商品的点击量 得到ItemViewCount
       .keyBy(_.itemId) //key是tuple或某个类型
-      .timeWindow(Time.hours(1), Time.minutes(5)) //窗口1小时，步长5分钟
+      .timeWindow(Time.hours(1), Time.minutes(5)) //滑动窗口，窗口1小时，步长5分钟
       .aggregate(new CountAgg, new WindowResult) //窗口聚合 返回DataStream
+
       //2).在按照点击量进行排序
       .keyBy(_.windowEnd) //再按窗口endtime聚合，为了排序
       .process(new TopNHotItems)
@@ -106,6 +108,7 @@ class CountAgg() extends AggregateFunction[UserBehavior, Long, Long] {
  * OUT The type of the output value.
  * KEY The type of the key.
  */
+//AggregateFunction的输出就是WindowFunction的输入
 class WindowResult extends WindowFunction[Long, ItemViewCount, Long, TimeWindow] {
   override def apply(key: Long, window: TimeWindow, input: Iterable[Long], out: Collector[ItemViewCount]): Unit = {
     out.collect(ItemViewCount(key, window.getEnd, input.iterator.next()))
