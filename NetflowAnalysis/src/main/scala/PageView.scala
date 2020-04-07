@@ -65,7 +65,7 @@ object PageView {
 }
 
 class PageViewWindowFunction extends AllWindowFunction[(String, Long), String, TimeWindow] {
-  //input就是整个窗口的输入，也就是整个窗口的数据
+  //input就是整个窗口的输入，也就是整个窗口的数据，默认trigger是到窗口结束时触发
   override def apply(window: TimeWindow, input: Iterable[(String, Long)], out: Collector[String]): Unit = {
     var count: Int = input.size
     val result = new StringBuilder

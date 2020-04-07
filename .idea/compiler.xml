@@ -6,6 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="LoginDetect" />
+        <module name="OrderSystem" />
+        <module name="MarketPromotionAnalysis" />
         <module name="HotItemAnalysis" />
         <module name="NetflowAnalysis" />
       </profile>

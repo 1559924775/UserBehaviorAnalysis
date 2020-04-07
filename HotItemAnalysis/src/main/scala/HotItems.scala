@@ -110,6 +110,7 @@ class CountAgg() extends AggregateFunction[UserBehavior, Long, Long] {
  */
 //AggregateFunction的输出就是WindowFunction的输入
 class WindowResult extends WindowFunction[Long, ItemViewCount, Long, TimeWindow] {
+  //input是一个窗口中某个key的相关集合，默认trigger一个窗口一触发
   override def apply(key: Long, window: TimeWindow, input: Iterable[Long], out: Collector[ItemViewCount]): Unit = {
     out.collect(ItemViewCount(key, window.getEnd, input.iterator.next()))
   }

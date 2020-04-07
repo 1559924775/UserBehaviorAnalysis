@@ -13,7 +13,7 @@ import scala.collection.mutable
 case class Vistor(userId:Long,behavior: String,count:Long,timestamp:Long)
 
 /**
- * 每隔1小时统计网站的UV
+ * 每隔1小时统计网站的UV，使用内存空间去重
  */
 object UniqueVisit {
   def main(args:Array[String]):Unit={
@@ -27,6 +27,7 @@ object UniqueVisit {
         Vistor(arr(0).trim.toLong, arr(3).trim, 1L, arr(4).trim.toLong)
       })
       .assignAscendingTimestamps(_.timestamp*1000)
+      .filter(_.behavior=="pv")
 
     val applyStream:DataStream[String] = dataStream
       .timeWindowAll(Time.hours(1))
@@ -40,6 +41,7 @@ object UniqueVisit {
 
 class UniqueVisitWindowFunction extends AllWindowFunction[Vistor,String,TimeWindow]{
   override def apply(window: TimeWindow, input: Iterable[Vistor], out: Collector[String]): Unit = {
+    //使用set对用户进行去重   -- 问题是这将撑爆内存
     val set:mutable.Set[Long] = mutable.Set[Long]()
     val iterator = input.iterator
     while(iterator.hasNext){

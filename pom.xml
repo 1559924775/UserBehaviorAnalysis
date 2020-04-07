@@ -11,11 +11,15 @@
     <modules>
         <module>HotItemAnalysis</module>
         <module>NetflowAnalysis</module>
+        <module>MarketPromotionAnalysis</module>
+        <module>LoginDetect</module>
+        <module>OrderSystem</module>
     </modules>
     <properties>
         <flink.version>1.7.2</flink.version>
         <scala.binary.version>2.12</scala.binary.version>
         <kafka.version>2.2.0</kafka.version>
+        <jedis.version>2.9.0</jedis.version>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-scala -->
@@ -49,6 +53,20 @@
             <artifactId>flink-clients_2.12</artifactId>
             <version>${flink.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${jedis.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.flink/flink-cep -->
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-cep-scala_${scala.binary.version}</artifactId>
+            <version>${flink.version}</version>
+        </dependency>
+
     </dependencies>
     <build>
         <plugins>
